@@ -131,6 +131,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_text = f"[User language: {lang_names.get(lang, 'English')}] {user_text}"
 
     try:
+        await update.effective_chat.send_action("typing")
         result = await chat(session_id, user_text, source="telegram")
         await update.message.reply_text(result["reply"])
     except Exception as e:
