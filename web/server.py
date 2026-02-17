@@ -40,6 +40,7 @@ app.mount("/static", StaticFiles(directory="web/static"), name="static")
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    lang: Optional[str] = None
 
 
 class ChatResponse(BaseModel):
@@ -52,7 +53,13 @@ class ChatResponse(BaseModel):
 @app.post("/api/chat", response_model=ChatResponse)
 async def api_chat(req: ChatRequest):
     session_id = req.session_id or str(uuid.uuid4())
-    result = await chat(session_id, req.message, source="web")
+    message = req.message
+    if req.lang and req.lang != "en":
+        lang_names = {"es": "Spanish", "ru": "Russian"}
+        lang_name = lang_names.get(req.lang)
+        if lang_name:
+            message = f"[User language: {lang_name}] {message}"
+    result = await chat(session_id, message, source="web")
     return ChatResponse(
         reply=result["reply"],
         session_id=session_id,

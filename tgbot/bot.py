@@ -1,8 +1,9 @@
 import logging
 
-from telegram import Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import (
     Application,
+    CallbackQueryHandler,
     CommandHandler,
     MessageHandler,
     filters,
@@ -15,13 +16,8 @@ from agent import leads
 
 logger = logging.getLogger(__name__)
 
-
-async def post_init(application):
-    await leads.init_db()
-
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
+LANG_GREETINGS = {
+    "en": (
         "Hello! I'm the ShippingExplorer support assistant.\n\n"
         "I can help you with:\n"
         "- Product features & capabilities\n"
@@ -29,13 +25,69 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "- Technical questions about AIS tracking\n"
         "- Getting started with ShippingExplorer\n\n"
         "Just type your question or use /pricing, /contact, or /help."
+    ),
+    "es": (
+        "¡Hola! Soy el asistente de soporte de ShippingExplorer.\n\n"
+        "Puedo ayudarte con:\n"
+        "- Funcionalidades del producto\n"
+        "- Planes de precios y descuentos\n"
+        "- Preguntas técnicas sobre seguimiento AIS\n"
+        "- Cómo empezar con ShippingExplorer\n\n"
+        "Escribe tu pregunta o usa /pricing, /contact o /help."
+    ),
+    "ru": (
+        "Здравствуйте! Я ассистент поддержки ShippingExplorer.\n\n"
+        "Я могу помочь вам с:\n"
+        "- Функции и возможности продукта\n"
+        "- Тарифные планы и скидки\n"
+        "- Технические вопросы по AIS-мониторингу\n"
+        "- Начало работы с ShippingExplorer\n\n"
+        "Напишите ваш вопрос или используйте /pricing, /contact или /help."
+    ),
+}
+
+
+async def post_init(application):
+    await leads.init_db()
+
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    keyboard = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("English", callback_data="lang_en"),
+            InlineKeyboardButton("Español", callback_data="lang_es"),
+            InlineKeyboardButton("Русский", callback_data="lang_ru"),
+        ]
+    ])
+    await update.message.reply_text(
+        "Welcome to ShippingExplorer Support!\n"
+        "Please choose your language:\n\n"
+        "Bienvenido al soporte de ShippingExplorer!\n"
+        "Por favor elige tu idioma:\n\n"
+        "Добро пожаловать в поддержку ShippingExplorer!\n"
+        "Пожалуйста, выберите язык:",
+        reply_markup=keyboard,
     )
+
+
+async def lang_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    lang = query.data.replace("lang_", "")
+    context.user_data["lang"] = lang
+
+    # Seed the conversation with the chosen language so Claude responds in it
+    session_id = f"tg_{update.effective_chat.id}"
+    clear_session(session_id)
+
+    greeting = LANG_GREETINGS.get(lang, LANG_GREETINGS["en"])
+    await query.edit_message_text(greeting)
 
 
 async def help_cmd(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "Available commands:\n"
-        "/start — Welcome message\n"
+        "/start — Choose language\n"
         "/pricing — View pricing plans\n"
         "/contact — Contact information\n"
         "/help — This help message\n\n"
@@ -72,6 +124,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     session_id = f"tg_{update.effective_chat.id}"
     user_text = update.message.text
 
+    # Prepend language hint if user chose one, so Claude responds in it
+    lang = context.user_data.get("lang")
+    if lang and lang != "en":
+        lang_names = {"es": "Spanish", "ru": "Russian"}
+        user_text = f"[User language: {lang_names.get(lang, 'English')}] {user_text}"
+
     result = await chat(session_id, user_text, source="telegram")
     await update.message.reply_text(result["reply"])
 
@@ -90,6 +148,7 @@ def main():
     )
 
     app.add_handler(CommandHandler("start", start))
+    app.add_handler(CallbackQueryHandler(lang_callback, pattern="^lang_"))
     app.add_handler(CommandHandler("help", help_cmd))
     app.add_handler(CommandHandler("pricing", pricing))
     app.add_handler(CommandHandler("contact", contact))

@@ -118,13 +118,6 @@
     }
   `;
 
-  function detectLang() {
-    const lang = (navigator.language || "en").toLowerCase();
-    if (lang.startsWith("es")) return "es";
-    if (lang.startsWith("ru")) return "ru";
-    return "en";
-  }
-
   const WELCOME = {
     en: {
       title: "ShippingExplorer Support",
@@ -146,6 +139,7 @@
   let sessionId = null;
   let isOpen = false;
   let welcomed = false;
+  let chosenLang = null;
 
   // Simple markdown to HTML (bold, lists, paragraphs)
   function md(text) {
@@ -203,13 +197,37 @@
     box.classList.toggle("open", isOpen);
     if (isOpen && !welcomed) {
       welcomed = true;
-      showWelcome();
+      showLangPicker();
     }
   }
 
+  function showLangPicker() {
+    var container = document.getElementById("se-chat-messages");
+    var div = document.createElement("div");
+    div.className = "se-welcome";
+    div.id = "se-welcome";
+    div.innerHTML =
+      '<div class="se-welcome-icon">&#9875;</div>' +
+      '<h3>ShippingExplorer Support</h3>' +
+      '<p>Please choose your language:<br>Elige tu idioma:<br>Выберите язык:</p>' +
+      '<div class="se-suggestions">' +
+        '<button class="se-chip" data-lang="en">English</button>' +
+        '<button class="se-chip" data-lang="es">Español</button>' +
+        '<button class="se-chip" data-lang="ru">Русский</button>' +
+      '</div>';
+    container.appendChild(div);
+
+    div.querySelectorAll(".se-chip").forEach(function (btn) {
+      btn.onclick = function () {
+        chosenLang = btn.getAttribute("data-lang");
+        div.remove();
+        showWelcome();
+      };
+    });
+  }
+
   function showWelcome() {
-    var lang = detectLang();
-    var w = WELCOME[lang];
+    var w = WELCOME[chosenLang] || WELCOME["en"];
     var container = document.getElementById("se-chat-messages");
     var div = document.createElement("div");
     div.className = "se-welcome";
@@ -282,7 +300,7 @@
       var res = await fetch(API_URL + "/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, session_id: sessionId }),
+        body: JSON.stringify({ message: text, session_id: sessionId, lang: chosenLang }),
       });
       var data = await res.json();
       sessionId = data.session_id;
