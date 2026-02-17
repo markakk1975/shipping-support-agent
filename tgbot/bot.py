@@ -130,8 +130,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         lang_names = {"es": "Spanish", "ru": "Russian"}
         user_text = f"[User language: {lang_names.get(lang, 'English')}] {user_text}"
 
-    result = await chat(session_id, user_text, source="telegram")
-    await update.message.reply_text(result["reply"])
+    try:
+        result = await chat(session_id, user_text, source="telegram")
+        await update.message.reply_text(result["reply"])
+    except Exception as e:
+        logger.error("Error handling message: %s", e, exc_info=True)
+        await update.message.reply_text(
+            "Sorry, I'm having trouble processing your request. Please try again in a moment."
+        )
 
 
 def main():

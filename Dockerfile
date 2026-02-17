@@ -7,5 +7,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-# Run both FastAPI server and Telegram bot
-CMD ["sh", "-c", "python -m tgbot.bot & uvicorn web.server:app --host 0.0.0.0 --port ${PORT:-8000}"]
+RUN chmod +x start.sh
+
+CMD ["./start.sh"]
