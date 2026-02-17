@@ -62,7 +62,7 @@ Python 3.11, FastAPI, python-telegram-bot 21.x, anthropic SDK (Haiku 4.5), SQLit
 
 ## Environment Variables
 - `ANTHROPIC_API_KEY` — Claude API key
-- `TELEGRAM_BOT_TOKEN` — Full token: `8261753961:AAHGHxlA...`
+- `TELEGRAM_BOT_TOKEN` — Telegram bot token
 - `PORT` — Web server port (default 8000)
 - `DB_PATH` — SQLite path (default `leads.db`)
 
