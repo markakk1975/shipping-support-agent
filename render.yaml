@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: shipping-support-agent
+    runtime: docker
+    plan: starter
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: PORT
+        value: "8000"
+      - key: DB_PATH
+        value: /data/leads.db
+    disk:
+      name: data
+      mountPath: /data
+      sizeGB: 1
