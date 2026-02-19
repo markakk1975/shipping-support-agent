@@ -1,0 +1,30 @@
+{
+  "name": "Shipping Support Agent",
+  "status": "in_progress",
+  "type": "web-app",
+  "description": "AI customer support for ShippingExplorer — web chat widget + Telegram bot",
+  "current_task": "Add WhatsApp channel via Meta Cloud API",
+  "created": "2026-01-15T00:00:00",
+  "tasks": [
+    {"title": "Agent core with Anthropic Haiku", "done": true},
+    {"title": "Knowledge base system", "done": true},
+    {"title": "Lead capture system", "done": true},
+    {"title": "Web chat widget", "done": true},
+    {"title": "Telegram bot integration", "done": true},
+    {"title": "Deploy to Render", "done": true},
+    {"title": "Add WhatsApp channel", "done": false}
+  ],
+  "links": {
+    "GitHub": "https://github.com/markakk1975/shipping-support-agent",
+    "Live URL": "https://shipping-support-agent.onrender.com",
+    "ShippingExplorer": "https://shippingexplorer.net",
+    "Local Files": "file:///Users/markakkerman/Coding/shipping-support-agent"
+  },
+  "variables": {
+    "Render Service ID": "srv-d6abdeali9vc73e08dp0",
+    "Telegram Bot": "@ShippingExplorer_bot (ID: 8261753961)",
+    "AI Model": "Claude Haiku 4.5",
+    "API Keys": "See .env in project root"
+  },
+  "schema_version": 1
+}
